@@ -1,0 +1,55 @@
+% Create by chenjx65 on 2016-11-1
+clear all;
+addpaths;
+
+load('data/pooh/rects_frm992.mat');
+poohPath = 'data/pooh/testing';
+
+% Initialize and obtain frame
+first = 992;
+last = 3000;
+length = last - first + 1;
+rectInit = {rect_lear, rect_leye, rect_nose, rect_rear, rect_reye};
+rectUpdate = rectInit;
+It = cell(1, length);
+for i = 1 : length
+    It{i} = imread(fullfile(poohPath, sprintf('image-%04d.jpg', i + first - 1))); 
+end
+
+% Open video writer
+vidname = 'pooh_lk.avi';
+vidout = VideoWriter(vidname);
+vidout.FrameRate = 10;
+open(vidout);
+% Add frames to video
+for i = 1 : length - 1
+    % Compute displacement for 5 rectangulars by LK
+    for j = 1 : 5
+        [u, v] = LucasKanade(It{i}, It{i+1}, rectInit{j});
+        rectInit{j} = rectInit{j} + [u, v, u, v];
+        % Adjust rectangular and update to draw
+        rectUpdate{j}(1) = max(0, rectInit{j}(1));
+        rectUpdate{j}(2) = max(0, rectInit{j}(2));
+        rectUpdate{j}(3) = min(size(It{i+1}, 2), rectInit{j}(3));
+        rectUpdate{j}(4) = min(size(It{i+1}, 1), rectInit{j}(4));
+    end
+    hf = figure(1); clf; hold on;
+    imshow(It{i+1});
+    for j = 1 : 5
+        rect = [rectUpdate{j}(1:2), rectUpdate{j}(3:4)-rectUpdate{j}(1:2)];
+        drawRect(rect, 'r', 5);
+    end
+    frameNum = i + first;
+
+    text(80, 100, ['Frame ', num2str(frameNum)], 'color', 'y', 'fontsize', 100);
+    title('Pooh tracker with Lucas-Kanade Tracker');
+    hold off;
+    % Write and resize a frame to video
+    frm = getframe;
+    writeVideo(vidout, imresize(frm.cdata, 0.5));
+end
+
+% Close video writer
+close(vidout);
+close(1);
+fprintf('Video saved to %s\n', vidname);
