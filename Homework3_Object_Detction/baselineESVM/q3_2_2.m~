@@ -1,0 +1,43 @@
+% Created by chenjx65 on 2016-10-13.
+
+% Q3.2.2
+
+addpath(genpath('../utils'));
+addpath(genpath('../lib/esvm'));
+load('../../data/bus_esvm.mat');
+load('../../data/bus_data.mat');
+params = esvm_get_default_params();
+
+% Initialize
+lpo = [3, 5, 10];
+len = length(lpo);
+recall = cell(1,len);
+precion = cell(1,len);
+AP = zeros(1,len);
+
+for i = 1:len   
+    % Update params and compute the corresponding boundingBoxes.
+    params.detect_levels_per_octave = lpo(i);
+    [boundingBoxes] = batchDetectImageESVM(gtImages, models, params);
+    [recall{i}, precion{i}, AP(i)] = evalAP(gtBoxes,boundingBoxes);
+    
+    % Save boundingBoxes
+    file_name = ['EsvmBoxes_', num2str(lpo),'.mat'];
+    save(file_name,'boundingBoxes');    
+end
+
+% plot AP vs. lpo graph
+plot(lpo, AP);
+title('AP vs. LPO');
+xlabel('LPO');
+ylabel('AP');
+
+
+%% Remember to delete!!!!!
+addpath('altmany-export_fig-8016f6a');
+set(gcf,'position',[0 0 600 600]);
+set(gcf, 'Color', 'w');
+saveas(gcf, 'q21_clustering.png');
+export_fig q21_clustering.png
+print -dpdf q21_clustering.pdf
+export_fig q21_clustering.pdf

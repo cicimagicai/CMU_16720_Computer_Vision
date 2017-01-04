@@ -1,0 +1,20 @@
+addpath(genpath('external'));
+
+% k in knnClassify
+k = [30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200 210 ];
+% The corresponding accuracy computed by the evaluateRecognitionSystem.m
+AP = [1.951158e-01 1.492671e-01 1.603804e-01 1.868378e-01 2.272633e-01...
+                        3.231642e-01
+];
+
+figure;
+plot(k, AP, 'r-');
+xlabel('k');
+ylabel('AP');
+axis([30 210 0.1 0.4]);
+title('The graph of k vs. AP');
+
+set(gcf, 'Position', [0 0 400 300]);
+set(gcf, 'Color', 'w');
+print -dpdf ../../../report/k_AP1.pdf
+export_fig ../../../report/k_AP1.pdf
